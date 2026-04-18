@@ -7,10 +7,10 @@
 #define GAMER_2_CHAR 'X'
 #define TEMP_CHAR ' '
 
-#define GAME_BOARD_SIZE 8
+#define GAME_BOARD_SIZE 10
 
 /*
-   GCMD (General Command) Status.
+   CMD (General Command) Status.
 */
 typedef enum
 {
