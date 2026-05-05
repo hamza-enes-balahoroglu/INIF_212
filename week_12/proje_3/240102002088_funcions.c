@@ -1,111 +1,4 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-
-//________ Local Macros ________
-
-//________ Local Structures ________
-
-typedef int (*ActionFunc)(void *self, void *arg);
-
-typedef struct
-{
-    ActionFunc present;
-    ActionFunc kill;
-} EntityHeader;
-
-typedef struct
-{
-    const EntityHeader *base;
-} GenericObject;
-
-typedef struct
-{
-    const EntityHeader *base;
-    float x;
-    float y;
-} Location;
-
-typedef struct
-{
-    const EntityHeader *base;
-    char *chr;
-    size_t count;
-} DString;
-
-typedef struct Customer
-{
-    const EntityHeader *base;
-    struct Customer *next;
-    Location *location;
-    DString *name; // Structure padding
-    int id;
-} Customer;
-
-typedef struct Product
-{
-    const EntityHeader *base;
-    struct Product *next;
-    DString *name;
-    float price;
-    int quantity;
-    int id;
-} Product;
-
-typedef struct Storehouse
-{
-    const EntityHeader *base;
-    struct Storehouse *next;
-    Location *location;
-    int id;
-} Storehouse;
-
-//________ Local Prototypes ________
-
-DString *DSTR_Create(char *char_list, int count);
-DString *DSTR_GetLine();
-int DSTR_Present(void *self, void *arg);
-int DSTR_Kill(void *self, void *arg);
-
-Location *LOC_Create(int x, int y);
-float LOC_CalculateDistance(Location *l1, Location *l2);
-int LOC_Present(void *self, void *arg);
-
-Customer *CUS_Create(int id, DString *name, int x, int y);
-int CUS_Present(void *self, void *arg);
-int CUS_Kill(void *self, void *arg);
-
-Storehouse *STORE_Create(int id, int x, int y);
-int STORE_Kill(void *self, void *arg);
-int STORE_Present(void *self, void *arg);
-
-Product *PROD_Create(int id, DString *name, float price, int quantity);
-int PROD_Kill(void *self, void *arg);
-int PROD_Present(void *self, void *arg);
-
-int Object_Kill(void *self);
-int Object_Present(void *self);
-int General_Free(void *self, void *arg);
-
-void Add_To_Customer_List(Customer *new_cus);
-void Add_To_Product_List(Product *new_prod);
-void Add_To_Store_List(Storehouse *new_store);
-
-void Handle_Add_Customer(void);
-void Handle_Add_Product(void);
-void Handle_Add_Storehouse(void);
-
-void View_All_Customers(void);
-void View_All_Products(void);
-void View_All_Storehouses(void);
-
-void Quit_System();
-
-void Analyze_Purchase();
-
-int Get_Int(const char *prompt);
-int Object_Present(void *self);
-void Destroy_Object(void *self);
+#include "240102002088_headers.h"
 
 //__________ Constant Variables ___________
 
@@ -133,59 +26,6 @@ const EntityHeader Product_Functions = {
 Customer *customer_list = NULL;
 Product *product_list = NULL;
 Storehouse *storehouse_list = NULL;
-
-//______________ MAIN _________________
-int main()
-{
-    int choice;
-    while (1)
-    {
-        printf("\n========== ANAMENU ==========\n");
-        printf("1. Musteri Ekle\n");
-        printf("2. Urun Ekle\n");
-        printf("3. Depo Ekle\n");
-        printf("4. Musterileri Listele\n");
-        printf("5. Urunleri Listele\n");
-        printf("6. Depolari Listele\n");
-        printf("7. Siparis Olustur\n");
-        printf("8. Cikis\n");
-
-        choice = Get_Int("Seciminiz: ");
-
-        switch (choice)
-        {
-        case 1:
-            Handle_Add_Customer();
-            break;
-        case 2:
-            Handle_Add_Product();
-            break;
-        case 3:
-            Handle_Add_Storehouse();
-            break;
-        case 4:
-            View_All_Customers();
-            break;
-        case 5:
-            View_All_Products();
-            break;
-        case 6:
-            View_All_Storehouses();
-            break;
-        case 7:
-            Analyze_Purchase();
-            break;
-        case 8:
-            Quit_System();
-            return 0;
-        default:
-            printf("Gecersiz secim!\n");
-        }
-    }
-    return 0;
-}
-
-//_____________Local Functions ____________
 
 Product *PROD_Create(int id, DString *name, float price, int quantity)
 {
@@ -237,7 +77,7 @@ int PROD_Present(void *self, void *arg)
     return 1;
 }
 
-Storehouse *STORE_Create(int id, int x, int y)
+Storehouse *STORE_Create(int id, float x, float y)
 {
     Storehouse *store = calloc(1, sizeof(Storehouse));
 
@@ -290,7 +130,7 @@ int STORE_Present(void *self, void *arg)
     return 1;
 }
 
-Location *LOC_Create(int x, int y)
+Location *LOC_Create(float x, float y)
 {
     Location *ptr = calloc(1, sizeof(Location));
 
@@ -306,7 +146,7 @@ Location *LOC_Create(int x, int y)
     return ptr;
 }
 
-Customer *CUS_Create(int id, DString *name, int x, int y)
+Customer *CUS_Create(int id, DString *name, float x, float y)
 {
     if (name == NULL)
         return NULL;
@@ -325,11 +165,13 @@ Customer *CUS_Create(int id, DString *name, int x, int y)
     if (temp_loc == NULL)
     {
         Object_Kill(customer);
+        return NULL;
     }
 
     customer->location = temp_loc;
 
     customer->next = NULL;
+    return customer;
 }
 
 int CUS_Kill(void *self, void *arg)
@@ -343,6 +185,8 @@ int CUS_Kill(void *self, void *arg)
     cus->location = NULL;
 
     free(cus);
+
+    return 1;
 }
 
 DString *DSTR_Create(char *char_list, int count)
@@ -437,13 +281,11 @@ DString *DSTR_GetLine()
 
     return str;
 }
-/*
- *  Bu fonksiyonu kullandıktan sonra ptr = NULL; demeyi unutma
- *
- */
+
 int General_Free(void *self, void *arg)
 {
     free(self);
+    return 1;
 }
 
 int Object_Kill(void *self)
@@ -452,6 +294,9 @@ int Object_Kill(void *self)
         return 0;
 
     GenericObject *obj = (GenericObject *)self;
+
+    if (obj->base == NULL || obj->base->kill == NULL)
+        return 0;
 
     obj->base->kill(obj, NULL);
     return 1;
@@ -464,6 +309,9 @@ int Object_Present(void *self)
 
     GenericObject *obj = (GenericObject *)self;
 
+    if (obj->base == NULL || obj->base->present == NULL)
+        return 0;
+
     obj->base->present(obj, NULL);
     return 1;
 }
@@ -473,27 +321,36 @@ int LOC_Present(void *self, void *arg)
     Location *loc = (Location *)self;
 
     printf("x = %.2f  y = %.2f", loc->x, loc->y);
+    return 1;
 }
 
 int CUS_Present(void *self, void *arg)
 {
     Customer *cus = (Customer *)self;
     Location *loc = (Location *)cus->location;
+    DString *name = (DString *)cus->name;
 
     printf("ID : %d\t\tAdi: ", cus->id);
 
-    Object_Present(cus->name);
+    Object_Present(name);
 
     printf("\t\t");
 
-    Object_Present(cus->location);
+    Object_Present(loc);
 
     printf("\n");
+
+    return 1;
 }
 
 float LOC_CalculateDistance(Location *l1, Location *l2)
 {
-    return sqrt(pow(l2->x - l1->x, 2) + pow(l2->y - l1->y, 2));
+    if (l1 == NULL || l2 == NULL)
+        return 0.0;
+        
+    float dx = l2->x - l1->x;
+    float dy = l2->y - l1->y;
+    return sqrt(dx * dx + dy * dy);
 }
 
 int Get_Int(const char *prompt)
@@ -570,10 +427,15 @@ void Handle_Add_Customer()
     int id = Get_Int("Musteri ID giriniz: ");
     printf("Musteri Ismi giriniz: ");
     DString *name = DSTR_GetLine();
-    int x = Get_Float("X Koordinati: ");
-    int y = Get_Float("Y Koordinati: ");
+    float x = Get_Float("X Koordinati: ");
+    float y = Get_Float("Y Koordinati: ");
 
     Customer *c = CUS_Create(id, name, x, y);
+    if (c == NULL)
+    {
+        printf("[HATA] : Musteri eklenemedi.\n");
+        return;
+    }
     Add_To_Customer_List(c);
     printf("Musteri basariyla eklendi!\n");
 }
@@ -587,6 +449,13 @@ void Handle_Add_Product()
     int qty = Get_Int("Stok Miktari: ");
 
     Product *p = PROD_Create(id, name, price, qty);
+
+    if (p == NULL)
+    {
+        printf("[HATA] : Urun eklenemedi.\n");
+        return;
+    }
+
     Add_To_Product_List(p);
     printf("Urun basariyla eklendi!\n");
 }
@@ -594,10 +463,17 @@ void Handle_Add_Product()
 void Handle_Add_Storehouse()
 {
     int id = Get_Int("Depo ID giriniz: ");
-    int x = Get_Int("Depo X Koordinati: ");
-    int y = Get_Int("Depo Y Koordinati: ");
+    float x = Get_Float("Depo X Koordinati: ");
+    float y = Get_Float("Depo Y Koordinati: ");
 
     Storehouse *s = STORE_Create(id, x, y);
+
+    if (s == NULL)
+    {
+        printf("[HATA] : Depo eklenemedi.\n");
+        return;
+    }
+
     Add_To_Store_List(s);
     printf("Depo basariyla eklendi!\n");
 }
@@ -753,6 +629,6 @@ void Quit_System()
         Object_Kill(curr_s);
         curr_s = next_s;
     }
-    
+
     printf("Sistemden cikiliyor...\n");
 }
